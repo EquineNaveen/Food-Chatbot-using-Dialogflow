@@ -3,10 +3,23 @@
 from fastapi import FastAPI
 from fastapi import Request
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 import db_helper
 import generic_helper
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/")
+def read_root():
+    return {"message": "Server is running"}
 
 inprogress_orders = {}
 
@@ -14,6 +27,7 @@ inprogress_orders = {}
 async def handle_request(request: Request):
     # Retrieve the JSON data from the request
     payload = await request.json()
+    print(f"Incoming request payload: {payload}")
 
     # Extract the necessary information from the payload
     # based on the structure of the WebhookRequest from Dialogflow
@@ -21,6 +35,7 @@ async def handle_request(request: Request):
     parameters = payload['queryResult']['parameters']
     output_contexts = payload['queryResult']['outputContexts']
     session_id = generic_helper.extract_session_id(output_contexts[0]["name"])
+    print(f"Intent: {intent}, Session ID: {session_id}")
 
     intent_handler_dict = {
         'order.add': add_to_order,
@@ -29,7 +44,9 @@ async def handle_request(request: Request):
         'track.order - context ongoing-tracking': track_order
     }
 
-    return intent_handler_dict[intent](parameters, session_id)
+    response = intent_handler_dict[intent](parameters, session_id)
+    print(f"Response: {response.body}")
+    return response
 
 def save_to_db(order: dict):
     next_order_id = db_helper.get_next_order_id()
