@@ -1,10 +1,11 @@
 # Author: Dhaval Patel. Codebasics YouTube Channel
 
 import mysql.connector
+import os
 global cnx
 
 cnx = mysql.connector.connect(
-    host="localhost",
+    host=os.environ.get('MYSQL_HOST', 'localhost'),
     user="root",
     password="root",
     database="pandeyji_eatery"

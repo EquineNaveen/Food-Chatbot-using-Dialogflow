@@ -1,0 +1,19 @@
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: pandeyji_eatery
+    volumes:
+      - ./db/pandeyji_eatery.sql:/docker-entrypoint-initdb.d/pandeyji_eatery.sql
+    ports:
+      - "3306:3306"
+
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - MYSQL_HOST=db
